@@ -2,30 +2,31 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 
-type Params = { params: { id: string } };
-
-// sanity GET – just to confirm the route works
-export async function GET(_req: Request, { params }: Params) {
-  return NextResponse.json({ ok: true, id: params.id });
-}
-
-export async function DELETE(_req: Request, { params }: Params) {
-  const { id } = params;
-
+/**
+ * DELETE /api/entries/:id
+ * Used by the Admin page to delete an entry by its app-level `id` field.
+ */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const db = await getDb();
     const collection = db.collection("entries");
 
-    // delete by our own string id, not _id
-    const result = await collection.deleteOne({ id });
+    // You store your own string `id`, so delete by that, NOT by _id/ObjectId
+    const result = await collection.deleteOne({ id: params.id });
 
-    if (!result.deletedCount) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("DELETE ERROR:", err);
-    return NextResponse.json({ error: "server error" }, { status: 500 });
+    console.error("DELETE /api/entries/[id] error:", err);
+    return NextResponse.json(
+      { ok: false, error: "Server error" },
+      { status: 500 }
+    );
   }
 }
