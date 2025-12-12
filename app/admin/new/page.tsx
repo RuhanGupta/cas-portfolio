@@ -197,22 +197,31 @@ export default function NewEntryPage() {
             </div>
             )}
 
-            {/* Description / Notes */}
+            {/* Description / Notes + Word Count */}
             <div className="space-y-2">
-            <label className="text-sm font-medium">
+              <label className="text-sm font-medium">
                 {isConversation ? "Conversation notes" : "Reflection"}
-            </label>
-            <textarea
+              </label>
+
+              <textarea
                 className="border rounded-lg px-3 py-2 w-full h-40"
                 placeholder={
-                isConversation
+                  isConversation
                     ? "Summarise what you discussed in the CAS conversation..."
                     : "What you did, what you learned, challenges, next steps..."
                 }
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-            />
+              />
+
+              {/* Word count */}
+              <p className="text-xs text-gray-500 text-right">
+                {description.trim() === ""
+                  ? "0/150 words"
+                  : `${description.trim().split(/\s+/).length}/150 words`}
+              </p>
             </div>
+
 
             {/* Images for Creativity/Activity/Service */}
             {!isConversation && (
