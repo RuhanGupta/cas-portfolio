@@ -3,6 +3,29 @@
 import { useEffect, useState } from "react";
 import type { CasEntryDB, MediaItem } from "@/lib/casModel";
 
+function PageHeader({
+  strand,
+  title,
+  description,
+}: {
+  strand: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <header className="space-y-3">
+      <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-500">
+        Strand · {strand}
+      </p>
+      <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+        {title}
+      </h1>
+      <p className="max-w-2xl text-sm text-slate-600">{description}</p>
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+    </header>
+  );
+}
+
 export default function ConversationsPage() {
   const [entries, setEntries] = useState<CasEntryDB[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,82 +40,64 @@ export default function ConversationsPage() {
     load();
   }, []);
 
-  if (loading) {
-    return <p className="text-slate-500 text-sm">Loading…</p>;
-  }
+  if (loading) return <p className="text-sm text-slate-500">Loading…</p>;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <header className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-          Strand · CAS Conversations
-        </p>
+    <div className="space-y-7">
+      <PageHeader
+        strand="CAS Conversations"
+        title="Conversation logs"
+        description="Audio-based reflections documenting termly CAS progress. Uploaded via the Admin panel."
+      />
 
-        <h2 className="text-3xl font-semibold tracking-tight">
-          <span className="bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200 bg-clip-text text-transparent">
-            CAS Conversation Logs
-          </span>
-        </h2>
-
-        <p className="text-slate-400 text-sm max-w-2xl">
-          Audio-based reflections documenting termly CAS progress. Uploaded via
-          the Admin Panel and stored with Cloudinary.
-        </p>
-      </header>
-
-      {/* No entries */}
       {entries.length === 0 && (
-        <p className="text-slate-500 text-sm">
-          No CAS conversations yet. Create one in the Admin Panel.
-        </p>
+        <div className="rounded-3xl border border-black/5 bg-white/70 p-6 text-sm text-slate-600">
+          No CAS conversations yet. Create one in the Admin panel.
+        </div>
       )}
 
-      {/* Entries */}
-      <section className="space-y-4">
+      <section className="grid gap-4">
         {entries.map((entry: any) => {
           const audios: MediaItem[] =
             entry.media?.filter((m: any) => m.kind === "audio") ?? [];
           const dateToShow =
-            (entry.entryDate as string | undefined) || entry.createdAt; // 👈 NEW
+            (entry.entryDate as string | undefined) || entry.createdAt;
 
           return (
             <article
               key={entry.id}
-              className="border border-white/10 bg-slate-950/40 rounded-2xl p-5 hover:border-emerald-300/40 hover:bg-slate-900/80 transition shadow-[0_16px_40px_rgba(0,0,0,0.7)]"
+              className="rounded-3xl border border-black/5 bg-white/70 backdrop-blur-xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.08)]"
             >
-              {/* Title */}
-              <h3 className="font-semibold text-xl mb-1 text-slate-50">
-                {entry.title}
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    {entry.title}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(dateToShow).toLocaleDateString()}
+                  </p>
+                </div>
 
-              {/* Date */}
-              <p className="text-xs text-slate-400 mb-3">
-                {new Date(dateToShow).toLocaleDateString()}
-              </p>
+                <span className="inline-flex w-fit items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.16em] text-sky-700">
+                  conversation
+                </span>
+              </div>
 
-              {/* Description */}
-              <p className="text-sm text-slate-100 whitespace-pre-wrap leading-relaxed mb-4">
+              <p className="mt-4 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                 {entry.description}
               </p>
 
-              {/* Audio Players */}
               {audios.length > 0 && (
-                <div className="space-y-4">
+                <div className="mt-5 space-y-3">
                   {audios.map((audio, idx) => (
                     <div
                       key={audio.url}
-                      className="rounded-xl border border-white/10 bg-slate-900/50 p-4"
+                      className="rounded-2xl border border-black/5 bg-white p-4"
                     >
-                      <p className="text-xs text-slate-400 mb-2">
+                      <p className="text-xs text-slate-500 mb-2">
                         Audio {idx + 1} — {audio.name}
                       </p>
-
-                      <audio
-                        controls
-                        src={audio.url}
-                        className="w-full h-10 rounded-lg bg-slate-800"
-                      />
+                      <audio controls src={audio.url} className="w-full" />
                     </div>
                   ))}
                 </div>

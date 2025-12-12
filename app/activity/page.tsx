@@ -3,6 +3,29 @@
 import { useEffect, useState } from "react";
 import type { CasEntryDB } from "@/lib/casModel";
 
+function PageHeader({
+  strand,
+  title,
+  description,
+}: {
+  strand: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <header className="space-y-3">
+      <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-500">
+        Strand · {strand}
+      </p>
+      <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+        {title}
+      </h1>
+      <p className="max-w-2xl text-sm text-slate-600">{description}</p>
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+    </header>
+  );
+}
+
 export default function ActivityPage() {
   const [entries, setEntries] = useState<CasEntryDB[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,58 +40,57 @@ export default function ActivityPage() {
     load();
   }, []);
 
-  if (loading) {
-    return <p className="text-gray-400 text-sm">Loading…</p>;
-  }
+  if (loading) return <p className="text-sm text-slate-500">Loading…</p>;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-          Strand · Activity
-        </p>
-        <h2 className="text-3xl font-semibold tracking-tight">
-          <span className="bg-gradient-to-r from-emerald-200 via-lime-200 to-yellow-200 bg-clip-text text-transparent">
-            Activity Reflections
-          </span>
-        </h2>
-        <p className="text-slate-400 text-sm max-w-2xl">
-          Weekly activity experiences documented with photos and reflections. All
-          entries are created in the Admin Panel.
-        </p>
-      </header>
+    <div className="space-y-7">
+      <PageHeader
+        strand="Activity"
+        title="Activity reflections"
+        description="Weekly activity experiences documented with photos and reflections."
+      />
 
       {entries.length === 0 && (
-        <p className="text-slate-500 text-sm">
-          No activity entries yet. Create one in the Admin Panel.
-        </p>
+        <div className="rounded-3xl border border-black/5 bg-white/70 p-6 text-sm text-slate-600">
+          No activity entries yet. Create one in the Admin panel.
+        </div>
       )}
 
-      <section className="space-y-4">
+      <section className="grid gap-4">
         {entries.map((e: any) => {
           const firstImage = e.media?.find((m: any) => m.kind === "image");
-          const dateToShow = (e.entryDate as string | undefined) || e.createdAt; // 👈 NEW
+          const dateToShow = (e.entryDate as string | undefined) || e.createdAt;
 
           return (
             <article
               key={e.id}
-              className="border border-white/10 bg-slate-950/40 rounded-2xl p-4 md:p-5 hover:border-indigo-300/40 hover:bg-slate-900/80 transition shadow-[0_16px_40px_rgba(0,0,0,0.7)]"
+              className="rounded-3xl border border-black/5 bg-white/70 backdrop-blur-xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.08)]"
             >
               {firstImage && (
                 <img
                   src={firstImage.url}
                   alt={firstImage.name}
-                  className="w-full max-h-[480px] h-auto object-contain rounded-2xl mb-4 border border-white/10 bg-black/10"
+                  className="w-full max-h-[520px] object-contain rounded-3xl border border-black/5 bg-white"
                 />
               )}
-              <h3 className="font-semibold text-xl mb-1 text-slate-50">
-                {e.title}
-              </h3>
-              <p className="text-xs text-slate-400 mb-3">
-                {new Date(dateToShow).toLocaleDateString()}{" "}
-                {e.week ? `· Week ${e.week}` : ""}
-              </p>
-              <p className="text-sm text-slate-100 whitespace-pre-wrap leading-relaxed">
+
+              <div className="mt-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    {e.title}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(dateToShow).toLocaleDateString()}
+                    {e.week ? ` · Week ${e.week}` : ""}
+                  </p>
+                </div>
+
+                <span className="inline-flex w-fit items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.16em] text-emerald-700">
+                  activity
+                </span>
+              </div>
+
+              <p className="mt-4 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                 {e.description}
               </p>
             </article>
