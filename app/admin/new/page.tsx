@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, ChangeEvent, FormEvent } from "react";
+import { useMemo, useState } from "react";
+import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { EntryKind, MediaItem } from "@/lib/casModel";
 import AdminAuthGuard from "@/components/AdminAuthGuard";
@@ -36,13 +37,13 @@ function SectionCard({
 }: {
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-black/5 bg-white/70 backdrop-blur-xl p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+    <div className="panel p-5">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+        <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
+        {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
       </div>
       <div className="mt-4">{children}</div>
     </div>
@@ -67,8 +68,8 @@ export default function NewEntryPage() {
   );
 
   const wordCount = useMemo(() => {
-    const t = description.trim();
-    return t ? t.split(/\s+/).length : 0;
+    const text = description.trim();
+    return text ? text.split(/\s+/).length : 0;
   }, [description]);
 
   const wordLimit = 150;
@@ -147,34 +148,29 @@ export default function NewEntryPage() {
       <div className="space-y-7">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-500">
-              Admin · New entry
-            </p>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+            <p className="kicker">Admin · New entry</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-100">
               Create a new entry
             </h1>
-            <p className="text-sm text-slate-600 max-w-2xl">
-              Keep it clean and presentable — this form is styled like a
-              portfolio tool, not a “developer panel”.
+            <p className="max-w-2xl text-sm text-slate-300">
+              Build polished entries with strong reflections and evidence.
             </p>
           </div>
 
           <Link
             href="/admin"
-            className="inline-flex items-center justify-center rounded-2xl border border-black/10 bg-white/80 px-4 py-2.5 text-sm font-medium text-slate-900 hover:bg-white transition"
+            className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.1]"
           >
             ← Back to Admin
           </Link>
         </header>
 
         <form onSubmit={handleSubmit} className="grid gap-4 lg:grid-cols-2">
-          {/* Left column */}
           <div className="space-y-4">
             <SectionCard title="Basics" subtitle="Core details for the entry.">
               <div className="space-y-4">
-                {/* Kind */}
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
                     Entry type
                   </label>
                   <select
@@ -183,7 +179,7 @@ export default function NewEntryPage() {
                       setKind(e.target.value as EntryKind);
                       setMedia([]);
                     }}
-                    className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 focus:border-slate-300"
+                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100"
                   >
                     <option value="creativity">Creativity</option>
                     <option value="activity">Activity</option>
@@ -192,9 +188,8 @@ export default function NewEntryPage() {
                   </select>
                 </div>
 
-                {/* Title */}
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
                     Title
                   </label>
                   <input
@@ -205,31 +200,28 @@ export default function NewEntryPage() {
                         ? "e.g. Term 1 CAS Conversation"
                         : "e.g. Designing a school play poster"
                     }
-                    className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300"
+                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
                   />
                 </div>
 
-                {/* Date */}
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
                     Date of activity / entry
                   </label>
                   <input
                     type="date"
                     value={entryDate}
                     onChange={(e) => setEntryDate(e.target.value)}
-                    className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 focus:border-slate-300"
+                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100"
                   />
-                  <p className="text-xs text-slate-500">
-                    Use the date the experience happened (or the CAS
-                    conversation took place).
+                  <p className="text-xs text-slate-400">
+                    Use the date when the experience happened.
                   </p>
                 </div>
 
-                {/* Week */}
                 {!isConversation && (
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
                       Week (optional)
                     </label>
                     <input
@@ -237,7 +229,7 @@ export default function NewEntryPage() {
                       value={week}
                       onChange={(e) => setWeek(e.target.value)}
                       placeholder="e.g. 5"
-                      className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300"
+                      className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
                     />
                   </div>
                 )}
@@ -259,17 +251,17 @@ export default function NewEntryPage() {
                     accept="image/*"
                     multiple
                     onChange={handleImages}
-                    className="text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:opacity-95"
+                    className="text-sm text-slate-300 file:mr-4 file:rounded-xl file:border file:border-cyan-300/35 file:bg-cyan-300/12 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100 hover:file:bg-cyan-300/20"
                   />
                   {uploading && (
-                    <p className="text-sm text-slate-500">Uploading…</p>
+                    <p className="text-sm text-slate-300">Uploading...</p>
                   )}
                   {media.some((m) => m.kind === "image") && (
-                    <div className="rounded-2xl border border-black/5 bg-white p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <div className="panel-soft p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                         Uploaded
                       </p>
-                      <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
                         {media
                           .filter((m) => m.kind === "image")
                           .map((m) => (
@@ -288,17 +280,17 @@ export default function NewEntryPage() {
                     accept="audio/*"
                     multiple
                     onChange={handleAudio}
-                    className="text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:opacity-95"
+                    className="text-sm text-slate-300 file:mr-4 file:rounded-xl file:border file:border-cyan-300/35 file:bg-cyan-300/12 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100 hover:file:bg-cyan-300/20"
                   />
                   {uploading && (
-                    <p className="text-sm text-slate-500">Uploading…</p>
+                    <p className="text-sm text-slate-300">Uploading...</p>
                   )}
                   {media.some((m) => m.kind === "audio") && (
-                    <div className="rounded-2xl border border-black/5 bg-white p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <div className="panel-soft p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                         Uploaded
                       </p>
-                      <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
                         {media
                           .filter((m) => m.kind === "audio")
                           .map((m) => (
@@ -314,14 +306,13 @@ export default function NewEntryPage() {
             </SectionCard>
           </div>
 
-          {/* Right column */}
           <div className="space-y-4">
             <SectionCard
               title={isConversation ? "Conversation notes" : "Reflection"}
               subtitle={
                 isConversation
-                  ? "Summarise what you discussed — keep it clear and specific."
-                  : "What you did, learned, challenges, and next steps."
+                  ? "Summarise what you discussed with clear outcomes."
+                  : "Capture actions, learning points, and next steps."
               }
             >
               <div className="space-y-3">
@@ -330,20 +321,19 @@ export default function NewEntryPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={
                     isConversation
-                      ? "Summarise what you discussed in the CAS conversation…"
-                      : "What you did, what you learned, challenges, next steps…"
+                      ? "Summarise what you discussed in the CAS conversation..."
+                      : "What you did, what you learned, challenges, next steps..."
                   }
-                  className="min-h-[220px] w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300"
+                  className="min-h-[220px] w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
                 />
 
-                {/* Word count + progress */}
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     {wordCount}/{wordLimit} words
                   </p>
-                  <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100 border border-black/5">
+                  <div className="h-2 w-40 overflow-hidden rounded-full border border-white/10 bg-white/[0.08]">
                     <div
-                      className="h-full bg-slate-900"
+                      className="h-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-300"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -351,18 +341,17 @@ export default function NewEntryPage() {
               </div>
             </SectionCard>
 
-            <div className="rounded-3xl border border-black/5 bg-white/70 backdrop-blur-xl p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+            <div className="panel p-5">
               <button
                 type="submit"
                 disabled={saving || uploading}
-                className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)] hover:opacity-95 disabled:opacity-60 transition"
+                className="w-full rounded-2xl border border-cyan-300/35 bg-cyan-300/12 px-4 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-60"
               >
-                {saving ? "Saving…" : uploading ? "Uploading…" : "Save entry"}
+                {saving ? "Saving..." : uploading ? "Uploading..." : "Save entry"}
               </button>
 
-              <p className="mt-3 text-xs text-slate-500">
-                Tip: Keep your reflection concise and evidence-driven for a
-                clean portfolio look.
+              <p className="mt-3 text-xs text-slate-400">
+                Keep reflections concise and evidence-driven for a strong portfolio.
               </p>
             </div>
           </div>

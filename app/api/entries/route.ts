@@ -33,33 +33,45 @@ function toDTO(doc: CasEntryDB): CasEntryDTO {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const kind = searchParams.get("kind") as EntryKind | null;
+  try {
+    const { searchParams } = new URL(request.url);
+    const kind = searchParams.get("kind") as EntryKind | null;
 
-  const docs = await listEntries(kind ?? undefined);
-  const entries = docs.map(toDTO);
-  return NextResponse.json(entries);
+    const docs = await listEntries(kind ?? undefined);
+    const entries = docs.map(toDTO);
+    return NextResponse.json(entries);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to list entries";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { kind, title, description, week, media, entryDate } = body; // 👈 NEW: entryDate
+  try {
+    const body = await request.json();
+    const { kind, title, description, week, media, entryDate } = body; // 👈 NEW: entryDate
 
-  if (!kind || !title || !description) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 }
-    );
+    if (!kind || !title || !description) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const saved = await createEntry({
+      kind,
+      title,
+      description,
+      week: week ?? null,
+      media: media ?? [],
+      entryDate: entryDate || null, // 👈 pass through (can be null)
+    });
+
+    return NextResponse.json(toDTO(saved), { status: 201 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create entry";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const saved = await createEntry({
-    kind,
-    title,
-    description,
-    week: week ?? null,
-    media: media ?? [],
-    entryDate: entryDate || null, // 👈 pass through (can be null)
-  });
-
-  return NextResponse.json(toDTO(saved), { status: 201 });
 }

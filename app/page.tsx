@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CasEntryDB } from "@/lib/casModel";
+import type { CasEntryDTO } from "@/lib/apiEntries";
+import { fetchEntries } from "@/lib/apiEntries";
 import Link from "next/link";
 
 type Kind = "all" | "creativity" | "activity" | "service" | "conversation";
@@ -19,17 +20,14 @@ function KindPill({
   active: boolean;
   onClick: () => void;
 }) {
-  const label =
-    kind === "all"
-      ? "All"
-      : kind.charAt(0).toUpperCase() + kind.slice(1);
+  const label = kind === "all" ? "All" : kind.charAt(0).toUpperCase() + kind.slice(1);
 
   const palette: Record<Kind, string> = {
-    all: "border-black/10 bg-white text-slate-900",
-    creativity: "border-emerald-900/15 bg-emerald-50/70 text-emerald-950",
-    activity: "border-lime-900/15 bg-lime-50/70 text-lime-950",
-    service: "border-rose-900/15 bg-rose-50/70 text-rose-950",
-    conversation: "border-teal-900/15 bg-teal-50/70 text-teal-950",
+    all: "border-white/20 bg-white/5 text-slate-200",
+    creativity: "border-cyan-300/35 bg-cyan-300/10 text-cyan-100",
+    activity: "border-emerald-300/35 bg-emerald-300/10 text-emerald-100",
+    service: "border-amber-300/35 bg-amber-300/10 text-amber-100",
+    conversation: "border-rose-300/35 bg-rose-300/10 text-rose-100",
   };
 
   return (
@@ -37,21 +35,21 @@ function KindPill({
       type="button"
       onClick={onClick}
       className={classNames(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.75rem] uppercase tracking-[0.18em] transition",
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.72rem] uppercase tracking-[0.2em] transition",
         palette[kind],
         active
-          ? "shadow-[0_10px_30px_rgba(6,78,59,0.12)] ring-2 ring-emerald-900/10"
-          : "hover:shadow-sm hover:bg-white/80"
+          ? "ring-2 ring-cyan-300/30 shadow-[0_12px_34px_rgba(6,182,212,0.18)]"
+          : "hover:bg-white/12"
       )}
     >
       <span
         className={classNames(
           "h-1.5 w-1.5 rounded-full",
-          kind === "all" && "bg-slate-500",
-          kind === "creativity" && "bg-emerald-700",
-          kind === "activity" && "bg-lime-700",
-          kind === "service" && "bg-rose-700",
-          kind === "conversation" && "bg-teal-700"
+          kind === "all" && "bg-slate-300",
+          kind === "creativity" && "bg-cyan-300",
+          kind === "activity" && "bg-emerald-300",
+          kind === "service" && "bg-amber-300",
+          kind === "conversation" && "bg-rose-300"
         )}
       />
       {label}
@@ -73,18 +71,27 @@ function monthKey(d: Date) {
 }
 
 export default function Dashboard() {
-  const [entries, setEntries] = useState<CasEntryDB[]>([]);
+  const [entries, setEntries] = useState<CasEntryDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [kind, setKind] = useState<Kind>("all");
   const [q, setQ] = useState("");
   const [goalPerMonth, setGoalPerMonth] = useState<number>(8);
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/entries");
-      const data = await res.json();
-      setEntries(data);
-      setLoading(false);
+      try {
+        const data = await fetchEntries();
+        setEntries(data);
+        setError(null);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load entries";
+        setEntries([]);
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
@@ -114,8 +121,8 @@ export default function Dashboard() {
 
   const sortedByDate = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      const da = new Date((a as any).entryDate || a.createdAt);
-      const db = new Date((b as any).entryDate || b.createdAt);
+      const da = new Date(a.entryDate || a.createdAt);
+      const db = new Date(b.entryDate || b.createdAt);
       return db.getTime() - da.getTime();
     });
   }, [filtered]);
@@ -123,9 +130,7 @@ export default function Dashboard() {
   const insights = useMemo(() => {
     const now = new Date();
     const thisMonth = monthKey(now);
-    const dates = entries.map(
-      (e) => new Date((e as any).entryDate || e.createdAt)
-    );
+    const dates = entries.map((e) => new Date(e.entryDate || e.createdAt));
 
     return {
       monthCount: dates.filter((d) => monthKey(d) === thisMonth).length,
@@ -139,48 +144,39 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="space-y-10">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-black/5 bg-white/70 backdrop-blur-xl shadow-[0_28px_90px_rgba(15,23,42,0.10)]">
-        <div className="relative p-6 sm:p-8">
-          <p className="text-[0.7rem] uppercase tracking-[0.26em] text-emerald-950/70">
-            Student Educational Portfolio · IB CAS
-          </p>
+    <div className="space-y-8">
+      <section className="panel relative overflow-hidden p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-cyan-400/18 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-14 left-20 h-52 w-52 rounded-full bg-amber-300/14 blur-3xl" />
 
-          <h1 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-tight text-slate-950">
-            CAS Portfolio Dashboard
-          </h1>
+        <p className="kicker">Student Educational Portfolio · IB CAS</p>
+        <h1 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-tight text-slate-100">
+          CAS Portfolio Dashboard
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm sm:text-base text-slate-300">
+          Curated reflections from Creativity, Activity, Service, and
+          Conversations, presented in a cinematic dark showcase format.
+        </p>
 
-          <p className="mt-3 max-w-2xl text-sm sm:text-base text-slate-700">
-            A personal student portfolio created to document International
-            Baccalaureate Creativity, Activity, and Service (CAS) experiences.
-            This site is for academic reflection, learning, and university
-            applications.
-          </p>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link
-              href="/admin/new"
-              className="rounded-2xl bg-emerald-950 px-4 py-2.5 text-sm font-medium text-white"
-            >
-              + New entry
-            </Link>
-            <Link
-              href="/creativity"
-              className="rounded-2xl border border-black/10 bg-white px-4 py-2.5 text-sm font-medium"
-            >
-              View strands →
-            </Link>
-          </div>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            href="/admin/new"
+            className="rounded-2xl border border-cyan-300/35 bg-cyan-300/12 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20"
+          >
+            + New entry
+          </Link>
+          <Link
+            href="/creativity"
+            className="rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.08]"
+          >
+            View strands →
+          </Link>
         </div>
       </section>
 
-      {/* TOOLBAR */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-[1.75rem] border border-black/5 bg-white/70 p-4">
-          <p className="text-[0.7rem] uppercase tracking-[0.2em] text-slate-600">
-            Filters
-          </p>
+      <section className="grid gap-4 lg:grid-cols-5">
+        <div className="panel p-4 lg:col-span-3">
+          <p className="kicker">Filters</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {(["all", "creativity", "activity", "service", "conversation"] as Kind[]).map(
               (k) => (
@@ -197,61 +193,79 @@ export default function Dashboard() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search reflections…"
-            className="mt-4 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm"
+            placeholder="Search reflections..."
+            className="mt-4 w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
           />
         </div>
 
-        <div className="rounded-[1.75rem] border border-black/5 bg-white/70 p-4">
-          <p className="text-[0.7rem] uppercase tracking-[0.2em] text-slate-600">
-            This Month
-          </p>
-
-          <p className="mt-2 text-3xl font-semibold">
+        <div className="panel p-4 lg:col-span-2">
+          <p className="kicker">This Month</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-100">
             {insights.monthCount} / {goalPerMonth}
           </p>
-
-          <div className="mt-3 h-2 rounded-full bg-slate-100">
+          <div className="mt-3 h-2 rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-emerald-950"
+              className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-300"
               style={{ width: `${monthProgressPct}%` }}
             />
           </div>
-
-          <label className="mt-3 block text-xs text-slate-600">
-            Monthly goal
-          </label>
+          <label className="mt-3 block text-xs text-slate-400">Monthly goal</label>
           <input
             type="number"
             min={1}
             value={goalPerMonth}
             onChange={(e) => setGoalPerMonth(Number(e.target.value || 1))}
-            className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-xl border border-white/15 bg-[#090f21] px-3 py-2 text-sm"
           />
         </div>
       </section>
 
-      {/* CONTENT */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="panel-soft p-3">
+          <p className="text-xs text-slate-400">Total</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-100">{counts.total}</p>
+        </div>
+        <div className="panel-soft p-3">
+          <p className="text-xs text-cyan-200">Creativity</p>
+          <p className="mt-1 text-2xl font-semibold text-cyan-100">{counts.creativity}</p>
+        </div>
+        <div className="panel-soft p-3">
+          <p className="text-xs text-emerald-200">Activity</p>
+          <p className="mt-1 text-2xl font-semibold text-emerald-100">{counts.activity}</p>
+        </div>
+        <div className="panel-soft p-3">
+          <p className="text-xs text-amber-200">Service</p>
+          <p className="mt-1 text-2xl font-semibold text-amber-100">{counts.service}</p>
+        </div>
+        <div className="panel-soft p-3">
+          <p className="text-xs text-rose-200">Conversations</p>
+          <p className="mt-1 text-2xl font-semibold text-rose-100">{counts.conversation}</p>
+        </div>
+      </section>
+
       <section className="space-y-4">
+        {error && (
+          <div className="panel border-rose-300/35 bg-rose-400/10 p-6 text-sm text-rose-100">
+            Failed to load entries: {error}
+          </div>
+        )}
+
         {loading ? (
-          <div className="rounded-[1.75rem] border border-black/5 bg-white/70 p-6">
-            Loading entries…
-          </div>
+          <div className="panel p-6 text-slate-300">Loading entries...</div>
         ) : sortedByDate.length === 0 ? (
-          <div className="rounded-[1.75rem] border border-black/5 bg-white/70 p-6">
-            No entries yet.
-          </div>
+          <div className="panel p-6 text-slate-300">No entries yet.</div>
         ) : (
-          sortedByDate.map((e) => (
+          sortedByDate.map((e, idx) => (
             <article
               key={e.id}
-              className="rounded-[1.75rem] border border-black/5 bg-white p-5"
+              className="panel p-5"
+              style={{ animationDelay: `${idx * 30}ms` }}
             >
-              <h3 className="text-sm font-semibold">{e.title}</h3>
-              <p className="mt-1 text-xs text-slate-500">
-                {formatDate((e as any).entryDate || e.createdAt)}
+              <h3 className="text-sm font-semibold text-slate-100">{e.title}</h3>
+              <p className="mt-1 text-xs text-slate-400">
+                {formatDate(e.entryDate || e.createdAt)}
               </p>
-              <p className="mt-3 text-sm text-slate-700">
+              <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300 leading-relaxed">
                 {e.description}
               </p>
             </article>
@@ -259,14 +273,11 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* FOOTER */}
-      <footer className="mt-10 rounded-[1.75rem] border border-black/5 bg-white/70 p-5 text-xs text-slate-600">
-        <p>
-          © {new Date().getFullYear()} Ruhan Gupta · Student Educational Portfolio
-        </p>
+      <footer className="panel-soft p-5 text-xs text-slate-400">
+        <p>© {new Date().getFullYear()} Ruhan Gupta · Student Educational Portfolio</p>
         <p className="mt-1">
-          International Baccalaureate CAS documentation · Non-commercial academic
-          use · Built with Next.js
+          International Baccalaureate CAS documentation · Non-commercial
+          academic use · Built with Next.js
         </p>
       </footer>
     </div>
