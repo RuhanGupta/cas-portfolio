@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { EntryKind, MediaItem } from "@/lib/casModel";
 import AdminAuthGuard from "@/components/AdminAuthGuard";
-import Link from "next/link";
+import { PageHero, StatTile } from "@/components/portfolio";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
@@ -19,14 +20,14 @@ async function uploadToCloudinary(
   form.append("file", file);
   form.append("upload_preset", UPLOAD_PRESET);
 
-  const res = await fetch(url, { method: "POST", body: form });
+  const response = await fetch(url, { method: "POST", body: form });
 
-  if (!res.ok) {
-    console.error(await res.text());
+  if (!response.ok) {
+    console.error(await response.text());
     throw new Error("Cloudinary upload failed");
   }
 
-  const data = await res.json();
+  const data = await response.json();
   return data.secure_url as string;
 }
 
@@ -40,19 +41,18 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <div className="panel p-5">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
-      </div>
-      <div className="mt-4">{children}</div>
-    </div>
+    <section className="site-panel p-5 sm:p-6">
+      <h2 className="font-serif text-2xl text-foreground">{title}</h2>
+      {subtitle ? (
+        <p className="mt-2 text-sm leading-7 text-muted-foreground">{subtitle}</p>
+      ) : null}
+      <div className="mt-5">{children}</div>
+    </section>
   );
 }
 
 export default function NewEntryPage() {
   const router = useRouter();
-
   const [kind, setKind] = useState<EntryKind>("creativity");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -60,12 +60,11 @@ export default function NewEntryPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-
-  const isConversation = kind === "conversation";
-
   const [entryDate, setEntryDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10)
   );
+
+  const isConversation = kind === "conversation";
 
   const wordCount = useMemo(() => {
     const text = description.trim();
@@ -75,8 +74,8 @@ export default function NewEntryPage() {
   const wordLimit = 150;
   const progress = Math.min(100, Math.round((wordCount / wordLimit) * 100));
 
-  const handleImages = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const handleImages = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
     if (!files || files.length === 0) return;
 
     try {
@@ -87,14 +86,14 @@ export default function NewEntryPage() {
       });
 
       const results = await Promise.all(uploads);
-      setMedia((prev) => [...prev, ...results]);
+      setMedia((current) => [...current, ...results]);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleAudio = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const handleAudio = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
     if (!files || files.length === 0) return;
 
     try {
@@ -105,19 +104,19 @@ export default function NewEntryPage() {
       });
 
       const results = await Promise.all(uploads);
-      setMedia((prev) => [...prev, ...results]);
+      setMedia((current) => [...current, ...results]);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     if (!title.trim() || !description.trim()) return;
 
     setSaving(true);
 
-    const res = await fetch("/api/entries", {
+    const response = await fetch("/api/entries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -132,8 +131,8 @@ export default function NewEntryPage() {
 
     setSaving(false);
 
-    if (!res.ok) {
-      console.error("Failed to save entry", await res.text());
+    if (!response.ok) {
+      console.error("Failed to save entry", await response.text());
       return;
     }
 
@@ -143,43 +142,48 @@ export default function NewEntryPage() {
     else router.push("/conversations");
   };
 
+  const uploadedCount = media.length;
+
   return (
     <AdminAuthGuard>
-      <div className="space-y-7">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <p className="kicker">Admin · New entry</p>
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-100">
-              Create a new entry
-            </h1>
-            <p className="max-w-2xl text-sm text-slate-300">
-              Build polished entries with strong reflections and evidence.
-            </p>
-          </div>
+      <div className="space-y-8">
+        <PageHero
+          eyebrow="Admin · New entry"
+          title="Compose a new portfolio entry with the same editorial feel."
+          description="This editor keeps the content workflow practical while pushing the final result toward concise reflections, strong evidence, and cleaner presentation."
+          actions={
+            <Link href="/admin" className="action-button-secondary">
+              Back to admin
+            </Link>
+          }
+          aside={
+            <div className="grid gap-3">
+              <StatTile label="Words" value={`${wordCount}/${wordLimit}`} />
+              <StatTile label="Uploads" value={uploadedCount} />
+              <StatTile label="Type" value={isConversation ? "Conversation" : kind} />
+            </div>
+          }
+        />
 
-          <Link
-            href="/admin"
-            className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.1]"
-          >
-            ← Back to Admin
-          </Link>
-        </header>
-
-        <form onSubmit={handleSubmit} className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-4">
-            <SectionCard title="Basics" subtitle="Core details for the entry.">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
+        <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-2">
+          <div className="space-y-5">
+            <SectionCard
+              title="Basics"
+              subtitle="Set the strand, title, date, and other structural details first."
+            >
+              <div className="grid gap-4">
+                <div>
+                  <label className="field-label" htmlFor="entry-kind">
                     Entry type
                   </label>
                   <select
+                    id="entry-kind"
                     value={kind}
-                    onChange={(e) => {
-                      setKind(e.target.value as EntryKind);
+                    onChange={(event) => {
+                      setKind(event.target.value as EntryKind);
                       setMedia([]);
                     }}
-                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100"
+                    className="form-field mt-2"
                   >
                     <option value="creativity">Creativity</option>
                     <option value="activity">Activity</option>
@@ -188,152 +192,119 @@ export default function NewEntryPage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                <div>
+                  <label className="field-label" htmlFor="entry-title">
                     Title
                   </label>
                   <input
+                    id="entry-title"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(event) => setTitle(event.target.value)}
                     placeholder={
                       isConversation
                         ? "e.g. Term 1 CAS Conversation"
                         : "e.g. Designing a school play poster"
                     }
-                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
+                    className="form-field mt-2"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                    Date of activity / entry
+                <div>
+                  <label className="field-label" htmlFor="entry-date">
+                    Date of activity
                   </label>
                   <input
+                    id="entry-date"
                     type="date"
                     value={entryDate}
-                    onChange={(e) => setEntryDate(e.target.value)}
-                    className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100"
+                    onChange={(event) => setEntryDate(event.target.value)}
+                    className="form-field mt-2"
                   />
-                  <p className="text-xs text-slate-400">
-                    Use the date when the experience happened.
-                  </p>
                 </div>
 
-                {!isConversation && (
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                      Week (optional)
+                {!isConversation ? (
+                  <div>
+                    <label className="field-label" htmlFor="entry-week">
+                      Week
                     </label>
                     <input
+                      id="entry-week"
                       type="number"
                       value={week}
-                      onChange={(e) => setWeek(e.target.value)}
-                      placeholder="e.g. 5"
-                      className="w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
+                      onChange={(event) => setWeek(event.target.value)}
+                      placeholder="Optional"
+                      className="form-field mt-2"
                     />
                   </div>
-                )}
+                ) : null}
               </div>
             </SectionCard>
 
             <SectionCard
-              title={isConversation ? "Conversation audio" : "Photos"}
+              title={isConversation ? "Conversation audio" : "Evidence uploads"}
               subtitle={
                 isConversation
-                  ? "Upload audio recordings (stored in Cloudinary)."
-                  : "Upload evidence photos (stored in Cloudinary)."
+                  ? "Upload one or more audio recordings."
+                  : "Upload photo evidence to support the reflection."
               }
             >
-              {!isConversation ? (
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImages}
-                    className="text-sm text-slate-300 file:mr-4 file:rounded-xl file:border file:border-cyan-300/35 file:bg-cyan-300/12 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100 hover:file:bg-cyan-300/20"
-                  />
-                  {uploading && (
-                    <p className="text-sm text-slate-300">Uploading...</p>
-                  )}
-                  {media.some((m) => m.kind === "image") && (
-                    <div className="panel-soft p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                        Uploaded
-                      </p>
-                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                        {media
-                          .filter((m) => m.kind === "image")
-                          .map((m) => (
-                            <li key={m.url} className="truncate">
-                              • {m.name}
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    multiple
-                    onChange={handleAudio}
-                    className="text-sm text-slate-300 file:mr-4 file:rounded-xl file:border file:border-cyan-300/35 file:bg-cyan-300/12 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100 hover:file:bg-cyan-300/20"
-                  />
-                  {uploading && (
-                    <p className="text-sm text-slate-300">Uploading...</p>
-                  )}
-                  {media.some((m) => m.kind === "audio") && (
-                    <div className="panel-soft p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                        Uploaded
-                      </p>
-                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                        {media
-                          .filter((m) => m.kind === "audio")
-                          .map((m) => (
-                            <li key={m.url} className="truncate">
-                              • {m.name}
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  accept={isConversation ? "audio/*" : "image/*"}
+                  multiple
+                  onChange={isConversation ? handleAudio : handleImages}
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-full file:border file:border-border file:bg-popover file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground"
+                />
+
+                {uploading ? (
+                  <p className="text-sm text-muted-foreground">Uploading...</p>
+                ) : null}
+
+                {media.length > 0 ? (
+                  <div className="soft-panel p-4">
+                    <p className="field-label">Uploaded files</p>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                      {media.map((item) => (
+                        <li key={item.url} className="truncate">
+                          {item.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             </SectionCard>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <SectionCard
-              title={isConversation ? "Conversation notes" : "Reflection"}
+              title={isConversation ? "Conversation summary" : "Reflection"}
               subtitle={
                 isConversation
-                  ? "Summarise what you discussed with clear outcomes."
-                  : "Capture actions, learning points, and next steps."
+                  ? "Capture what was discussed and what changed next."
+                  : "Describe the work, what you learned, and what you would improve."
               }
             >
-              <div className="space-y-3">
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={
-                    isConversation
-                      ? "Summarise what you discussed in the CAS conversation..."
-                      : "What you did, what you learned, challenges, next steps..."
-                  }
-                  className="min-h-[220px] w-full rounded-2xl border border-white/15 bg-[#090f21] px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
-                />
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder={
+                  isConversation
+                    ? "Summarise what was discussed in the CAS conversation..."
+                    : "Describe the experience, learning points, challenges, and next steps..."
+                }
+                className="form-field min-h-[20rem] resize-y"
+              />
 
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs text-slate-400">
-                    {wordCount}/{wordLimit} words
-                  </p>
-                  <div className="h-2 w-40 overflow-hidden rounded-full border border-white/10 bg-white/[0.08]">
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Aim for concise, specific reflections.
+                </p>
+                <div className="w-full max-w-xs">
+                  <div className="progress-track">
                     <div
-                      className="h-full bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-300"
+                      className="progress-fill"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -341,19 +312,19 @@ export default function NewEntryPage() {
               </div>
             </SectionCard>
 
-            <div className="panel p-5">
+            <section className="site-panel p-5 sm:p-6">
               <button
                 type="submit"
                 disabled={saving || uploading}
-                className="w-full rounded-2xl border border-cyan-300/35 bg-cyan-300/12 px-4 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20 disabled:opacity-60"
+                className="action-button w-full disabled:opacity-60"
               >
                 {saving ? "Saving..." : uploading ? "Uploading..." : "Save entry"}
               </button>
-
-              <p className="mt-3 text-xs text-slate-400">
-                Keep reflections concise and evidence-driven for a strong portfolio.
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                The entry will appear automatically in the relevant strand page
+                after it is saved.
               </p>
-            </div>
+            </section>
           </div>
         </form>
       </div>

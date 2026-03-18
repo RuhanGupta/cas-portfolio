@@ -1,7 +1,7 @@
 // lib/casStorage.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export type EntryKind = "creativity" | "activity" | "service" | "conversation";
 
@@ -64,14 +64,8 @@ export function makeMediaId() {
 }
 
 export function useCasEntries() {
-  const [entries, setEntries] = useState<CasEntry[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const stored = loadEntriesFromStorage();
-    setEntries(stored);
-    setLoaded(true);
-  }, []);
+  const [entries, setEntries] = useState<CasEntry[]>(() => loadEntriesFromStorage());
+  const loaded = true;
 
   const addEntry = (entry: CasEntry) => {
     setEntries((prev) => {

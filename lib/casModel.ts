@@ -1,5 +1,5 @@
 // lib/casModel.ts
-import { ObjectId } from "mongodb";
+import { ObjectId, type OptionalId } from "mongodb";
 import { getDb } from "./mongodb";
 
 export type EntryKind = "creativity" | "activity" | "service" | "conversation";
@@ -38,9 +38,9 @@ export async function createEntry(data: {
   entryDate?: string | null; // 👈 NEW: comes in as string (e.g. "2025-01-02")
 }): Promise<CasEntryDB> {
   const db = await getDb();
-  const collection = db.collection<CasEntryDB>("entries");
+  const collection = db.collection<OptionalId<CasEntryDB>>("entries");
 
-  const baseDoc = {
+  const baseDoc: OptionalId<CasEntryDB> = {
     id: makeId(),
     kind: data.kind,
     title: data.title,
@@ -51,7 +51,7 @@ export async function createEntry(data: {
     media: data.media ?? [],
   };
 
-  const res = await collection.insertOne(baseDoc as any);
+  const res = await collection.insertOne(baseDoc);
 
   return {
     _id: res.insertedId,

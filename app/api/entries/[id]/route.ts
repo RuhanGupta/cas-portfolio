@@ -2,14 +2,17 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 
-// sanity GET – just to confirm the route works
-export async function GET(_req: Request, ctx: any) {
-  const { id } = ctx.params;
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function GET(_req: Request, context: RouteContext) {
+  const { id } = await context.params;
   return NextResponse.json({ ok: true, id });
 }
 
-export async function DELETE(_req: Request, ctx: any) {
-  const { id } = ctx.params;
+export async function DELETE(_req: Request, context: RouteContext) {
+  const { id } = await context.params;
 
   try {
     const db = await getDb();

@@ -1,85 +1,96 @@
-import "./globals.css";
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { JetBrains_Mono, Merriweather, Source_Serif_4 } from "next/font/google";
+import "./globals.css";
 
-type RootLayoutProps = { children: ReactNode };
+const fontSans = Merriweather({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
+const fontSerif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/creativity", label: "Creativity" },
+  { href: "/activity", label: "Activity" },
+  { href: "/service", label: "Service" },
+  { href: "/conversations", label: "Conversations" },
+];
+
+export const metadata: Metadata = {
+  title: "Ruhan Gupta | CAS Portfolio",
+  description:
+    "An editorial CAS portfolio documenting creativity, activity, service, and reflective conversations.",
+};
+
+function NavLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link
-      href={href}
-      className="rounded-full border border-transparent px-3 py-1.5 text-[0.86rem] font-medium text-slate-300 transition hover:border-white/15 hover:bg-white/[0.08] hover:text-white"
-    >
-      {children}
+    <Link href={href} className="nav-chip">
+      {label}
     </Link>
   );
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body
+        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
+      >
         <div className="min-h-screen">
           <nav className="sticky top-0 z-40 px-4 pt-4">
-            <div className="mx-auto max-w-6xl rounded-[1.6rem] border border-white/12 bg-[#081126]/82 backdrop-blur-2xl shadow-[0_24px_70px_rgba(2,8,20,0.55)]">
-              <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
-                <Link href="/" className="group flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-[conic-gradient(from_180deg,rgba(34,211,238,0.95),rgba(245,158,11,0.85),rgba(52,211,153,0.8),rgba(34,211,238,0.95))] shadow-[0_16px_36px_rgba(8,145,178,0.32)]" />
-                  <div className="leading-tight">
-                    <div className="text-[0.64rem] uppercase tracking-[0.24em] text-cyan-300/80">
-                      CAS Portfolio
-                    </div>
-                    <div className="text-[1.03rem] font-semibold text-slate-100 group-hover:text-white">
+            <div className="site-panel mx-auto max-w-6xl px-5 py-4 sm:px-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <Link href="/" className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/25 bg-primary/12 shadow-sm">
+                    <div className="h-8 w-8 rounded-full border border-primary/30 bg-primary/75" />
+                  </div>
+                  <div>
+                    <p className="kicker">IB Diploma Programme</p>
+                    <p className="font-serif text-2xl text-foreground">
                       Ruhan Gupta
-                    </div>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      CAS portfolio in Kodama Grove
+                    </p>
                   </div>
                 </Link>
 
-                <div className="hidden md:flex items-center gap-1">
-                  <NavLink href="/">Dashboard</NavLink>
-                  <NavLink href="/creativity">Creativity</NavLink>
-                  <NavLink href="/activity">Activity</NavLink>
-                  <NavLink href="/service">Service</NavLink>
-                  <NavLink href="/conversations">Conversations</NavLink>
-                  <div className="mx-2 h-6 w-px bg-white/12" />
-                  <Link
-                    href="/admin"
-                    className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-300/12 px-3 py-1.5 text-[0.86rem] font-medium text-cyan-100 transition hover:bg-cyan-300/20"
-                  >
-                    <span className="h-2 w-2 rounded-full bg-cyan-300" />
-                    Admin
-                  </Link>
-                </div>
-
-                <div className="md:hidden flex items-center gap-2">
-                  <Link
-                    href="/admin"
-                    className="rounded-full border border-cyan-300/35 bg-cyan-300/12 px-3 py-1.5 text-sm text-cyan-100"
-                  >
+                <div className="flex flex-wrap items-center gap-2">
+                  {navItems.map((item) => (
+                    <NavLink key={item.href} href={item.href} label={item.label} />
+                  ))}
+                  <Link href="/admin" className="action-button">
                     Admin
                   </Link>
                 </div>
               </div>
-
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-200/35 to-transparent" />
             </div>
           </nav>
 
-          <main className="mx-auto max-w-6xl px-4 pb-10 pt-8">
-            <div className="panel animate-rise p-5 sm:p-7">
-              {children}
-            </div>
+          <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">{children}</main>
 
-            <footer className="mt-6 text-center text-xs text-slate-400">
-              Built for a polished, dark-mode CAS portfolio presentation.
-            </footer>
-          </main>
+          <footer className="px-4 pb-10">
+            <div className="mx-auto max-w-6xl rounded-[1.75rem] border border-border/70 bg-popover/72 px-6 py-5 text-sm text-muted-foreground">
+              <p className="font-serif text-xl text-foreground">
+                A warmer, editorial CAS archive.
+              </p>
+              <p className="mt-2 max-w-3xl leading-7">
+                Built with Next.js to document reflections, evidence, and
+                conversations across creativity, activity, and service.
+              </p>
+            </div>
+          </footer>
         </div>
       </body>
     </html>
