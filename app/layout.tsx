@@ -24,6 +24,7 @@ const navItems = [
   { href: "/creativity", label: "Creativity" },
   { href: "/activity", label: "Activity" },
   { href: "/service", label: "Service" },
+  { href: "/project", label: "Project Week" },
   { href: "/conversations", label: "Conversations" },
 ];
 

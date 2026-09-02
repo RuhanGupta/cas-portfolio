@@ -3,7 +3,12 @@
 
 import { useState } from "react";
 
-export type EntryKind = "creativity" | "activity" | "service" | "conversation";
+export type EntryKind =
+  | "creativity"
+  | "activity"
+  | "service"
+  | "project"
+  | "conversation";
 
 export type MediaKind = "image" | "audio";
 

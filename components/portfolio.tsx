@@ -35,6 +35,12 @@ export const STRAND_META: Record<
     color: "var(--chart-3)",
     description: "Community work, responsibility, and practical help.",
   },
+  project: {
+    label: "Project Week",
+    href: "/project",
+    color: "var(--chart-5)",
+    description: "Collaborative project week planning, execution, and outcomes.",
+  },
   conversation: {
     label: "Conversations",
     href: "/conversations",

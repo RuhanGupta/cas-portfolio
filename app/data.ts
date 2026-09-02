@@ -1,4 +1,9 @@
-export type EntryType = "creativity" | "activity" | "service" | "conversation";
+export type EntryType =
+  | "creativity"
+  | "activity"
+  | "service"
+  | "project"
+  | "conversation";
 
 export interface Entry {
   id: string;

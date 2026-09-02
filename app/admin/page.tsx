@@ -201,6 +201,7 @@ export default function AdminPage() {
               <option value="creativity">Creativity</option>
               <option value="activity">Activity</option>
               <option value="service">Service</option>
+              <option value="project">Project Week</option>
               <option value="conversation">Conversation</option>
             </select>
           </div>

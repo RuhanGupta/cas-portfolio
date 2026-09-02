@@ -139,6 +139,7 @@ export default function NewEntryPage() {
     if (kind === "creativity") router.push("/creativity");
     else if (kind === "activity") router.push("/activity");
     else if (kind === "service") router.push("/service");
+    else if (kind === "project") router.push("/project");
     else router.push("/conversations");
   };
 
@@ -188,6 +189,7 @@ export default function NewEntryPage() {
                     <option value="creativity">Creativity</option>
                     <option value="activity">Activity</option>
                     <option value="service">Service</option>
+                    <option value="project">Project Week</option>
                     <option value="conversation">CAS Conversation</option>
                   </select>
                 </div>

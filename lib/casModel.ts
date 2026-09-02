@@ -2,7 +2,12 @@
 import { ObjectId, type OptionalId } from "mongodb";
 import { getDb } from "./mongodb";
 
-export type EntryKind = "creativity" | "activity" | "service" | "conversation";
+export type EntryKind =
+  | "creativity"
+  | "activity"
+  | "service"
+  | "project"
+  | "conversation";
 
 export interface MediaItem {
   kind: "image" | "audio";
